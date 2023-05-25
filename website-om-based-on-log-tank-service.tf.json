@@ -1,0 +1,68 @@
+{
+    "terraform": {
+        "required_providers": [
+            {
+                "huaweicloud": {
+                    "source": "huawei.com/provider/huaweicloud",
+                    "version": ">=1.40.1"
+                }
+            }
+        ]
+    },
+    "provider": {
+        "huaweicloud": {
+            "cloud": "myhuaweicloud.com",
+            "endpoints": {
+                "iam": "iam.ap-southeast-3.myhuaweicloud.com",
+                "dns": "dns.ap-southeast-3.myhuaweicloud.com"
+            },
+            "insecure": true,
+            "region": "ap-southeast-3",
+            "auth_url": "https://iam.ap-southeast-3.myhuaweicloud.com/v3"
+        }
+    },
+    "variable": {
+        "group_name": {
+            "default": "website-om-based-on-log-tank-service-demo",
+            "description": "A unique log group name. Use up to 64 characters. Only letters, digits, hyphens (-), underscores (_), and periods (.) are allowed. Do not start with a period or underscore, or end with a period.",
+            "type": "string",
+            "nullable": "false",
+            "validation": {
+                "condition": "${length(regexall(\"(^[a-zA-Z0-9-][a-zA-Z0-9\\\\._-]{0,62}[a-zA-Z0-9-_]$|^[a-zA-Z0-9-]$)\",var.group_name))>0}",
+                "error_message": "Invalid input. Please re-enter."
+            }
+        },
+        "stream_name": {
+            "default": "website-om-based-on-log-tank-service-demo",
+            "description": "A unique log stream name. Use up to 64 characters. Only letters, digits, hyphens (-), underscores (_), and periods (.) are allowed. Do not start with a period or underscore, or end with a period.",
+            "type": "string",
+            "nullable": "false",
+            "validation": {
+                "condition": "${length(regexall(\"(^[a-zA-Z0-9-][a-zA-Z0-9\\\\._-]{0,62}[a-zA-Z0-9-_]$|^[a-zA-Z0-9-]$)\",var.stream_name))>0}",
+                "error_message": "Invalid input. Please re-enter."
+            }
+        }
+    },
+    "resource": {
+        "huaweicloud_lts_group": {
+            "elb_group": {
+                "group_name": "${var.group_name}",
+                "ttl_in_days": 1
+            }
+        },
+        "huaweicloud_lts_stream": {
+            "elb_stream": {
+                "stream_name": "${var.stream_name}",
+                "group_id": "${huaweicloud_lts_group.elb_group.id}"
+            }
+        },
+        "huaweicloud_lts_struct_template": {
+            "template": {
+                "log_group_id": "${huaweicloud_lts_group.elb_group.id}",
+                "log_stream_id": "${huaweicloud_lts_stream.elb_stream.id}",
+                "template_type": "built_in",
+                "template_name": "ELB"
+            }
+        }
+    }
+}
